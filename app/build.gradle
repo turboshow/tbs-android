@@ -70,6 +70,7 @@ androidExtensions {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
     implementation "androidx.core:core-ktx:$coreKtxVersion"
     implementation "androidx.legacy:legacy-support-v4:$legacyVersion"
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycleVersion"
