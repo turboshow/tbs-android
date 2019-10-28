@@ -25,6 +25,16 @@ import kotlinx.coroutines.launch
 class BrowseActivity : FragmentActivity() {
     private lateinit var device: Device
     private lateinit var progressDialog: ProgressDialog
+    private val mediaUnmountedReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            intent?.let {
+                val mountPoint = it.data!!.path
+                if (mountPoint == device.ref) {
+                    finish()
+                }
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,20 +45,17 @@ class BrowseActivity : FragmentActivity() {
         bindService()
 
         registerReceiver(
-            object : BroadcastReceiver() {
-                override fun onReceive(context: Context?, intent: Intent?) {
-                    intent?.let {
-                        val mountPoint = it.data!!.path
-                        if (mountPoint == device.ref) {
-                            finish()
-                        }
-                    }
-                }
-            },
+            mediaUnmountedReceiver,
             IntentFilter(Intent.ACTION_MEDIA_UNMOUNTED).apply {
                 addDataScheme("file")
             }
         )
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        unregisterReceiver(mediaUnmountedReceiver)
     }
 
     private fun bindService() {
@@ -79,7 +86,7 @@ class BrowseActivity : FragmentActivity() {
             progressDialog.show()
             try {
                 val files = device.listDirectory(directoryFile)
-                progressDialog.hide()
+                progressDialog.dismiss()
                 val fragment = BrowseFragment.newInstance(directoryFile.name, files)
                 fragment.setOnItemViewClickedListener(OnItemViewClickedListener { _, file, _, _ ->
                     if (file is DeviceFile) {
@@ -97,7 +104,7 @@ class BrowseActivity : FragmentActivity() {
                     }
                 }.commit()
             } catch (e: Exception) {
-                progressDialog.hide()
+                progressDialog.dismiss()
                 Toast.makeText(this@BrowseActivity, e.message, LENGTH_SHORT).show()
             }
         }
