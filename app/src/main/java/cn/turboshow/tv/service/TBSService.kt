@@ -3,23 +3,19 @@ package cn.turboshow.tv.service
 import android.content.Context
 import android.content.Intent
 import android.os.IBinder
-import dagger.android.DaggerService
-import org.fourthline.cling.UpnpService
-import org.fourthline.cling.UpnpServiceImpl
-import org.fourthline.cling.android.AndroidRouter
-import org.fourthline.cling.android.AndroidUpnpServiceConfiguration
-import org.fourthline.cling.protocol.ProtocolFactory
-import org.fourthline.cling.registry.Registry
-import org.fourthline.cling.transport.Router
+import cn.turboshow.tv.device.DeviceRegistry
+import cn.turboshow.tv.di.DaggerLifecycleService
 import javax.inject.Inject
 
-class TBSService : DaggerService() {
+class TBSService : DaggerLifecycleService() {
     @Inject
     lateinit var webServer: WebServer
-    lateinit var upnpService: UpnpService
+    lateinit var deviceRegistry: DeviceRegistry
     private val binder = Binder()
 
-    override fun onBind(intent: Intent?): IBinder? {
+    override fun onBind(intent: Intent): IBinder {
+        super.onBind(intent)
+
         return binder
     }
 
@@ -27,25 +23,14 @@ class TBSService : DaggerService() {
         super.onCreate()
 
         webServer.start()
-        initUpnpService()
-    }
 
-    private fun initUpnpService() {
-        upnpService = object : UpnpServiceImpl(AndroidUpnpServiceConfiguration()) {
-            override fun createRouter(protocolFactory: ProtocolFactory?, registry: Registry?): Router {
-                return AndroidRouter(configuration, protocolFactory, this@TBSService)
-            }
-
-            override fun shutdown() {
-                (router as AndroidRouter).unregisterBroadcastReceiver()
-                super.shutdown()
-            }
-        }
+        deviceRegistry = DeviceRegistry(this, this)
+        deviceRegistry.startMonitorDevices()
     }
 
     override fun onDestroy() {
         webServer.stop()
-        upnpService.shutdown()
+        deviceRegistry.stopMonitorDevices()
 
         super.onDestroy()
     }

@@ -91,7 +91,7 @@ class PlayerFragment : VideoSupportFragment() {
     }
 
     companion object {
-        private const val ARG_TITLE = "title"
+        private const val ARG_TITLE = "name"
         private const val ARG_URI = "uri"
 
         private const val PREF_SAVED_POSITIONS = "position"

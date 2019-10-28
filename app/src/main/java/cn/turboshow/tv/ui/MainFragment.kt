@@ -12,53 +12,10 @@ import cn.turboshow.tv.ui.browse.BrowseActivity
 import cn.turboshow.tv.ui.iptv.IptvActivity
 import cn.turboshow.tv.ui.presenter.GridItemPresenter
 import cn.turboshow.tv.util.ServiceBinder
-import org.fourthline.cling.model.meta.LocalDevice
-import org.fourthline.cling.model.meta.RemoteDevice
-import org.fourthline.cling.registry.Registry
-import org.fourthline.cling.registry.RegistryListener
-
-private const val UPNP_SERVICE_TYPE_CONTENT_DIRECTORY = "ContentDirectory"
 
 class MainFragment : BrowseSupportFragment() {
     private var tbsService: TBSService? = null
     private val devicesAdapter = ArrayObjectAdapter(GridItemPresenter())
-    private val upnpRegistryListener = object : RegistryListener {
-        override fun localDeviceRemoved(registry: Registry?, device: LocalDevice?) {
-        }
-
-        override fun remoteDeviceDiscoveryStarted(registry: Registry?, device: RemoteDevice?) {
-        }
-
-        override fun remoteDeviceDiscoveryFailed(
-            registry: Registry?,
-            device: RemoteDevice?,
-            ex: Exception?
-        ) {
-        }
-
-        override fun afterShutdown() {
-        }
-
-        override fun remoteDeviceAdded(registry: Registry?, device: RemoteDevice?) {
-            onUpnpDeviceAdded(device!!)
-        }
-
-        override fun remoteDeviceUpdated(registry: Registry?, device: RemoteDevice?) {
-        }
-
-        override fun beforeShutdown(registry: Registry?) {
-        }
-
-        override fun remoteDeviceRemoved(registry: Registry?, device: RemoteDevice?) {
-            activity!!.runOnUiThread {
-                devicesAdapter.remove(device)
-            }
-        }
-
-        override fun localDeviceAdded(registry: Registry?, device: LocalDevice?) {
-        }
-
-    }
 
     private lateinit var serviceBinder: ServiceBinder
 
@@ -74,17 +31,22 @@ class MainFragment : BrowseSupportFragment() {
     private fun initService() {
         serviceBinder = object : ServiceBinder(activity!!, this) {
             override fun onServiceConnected(binder: IBinder) {
-                tbsService = (binder as TBSService.Binder).getService().also {
-                    it.upnpService.let { upnpService ->
-                        upnpService.registry.remoteDevices.forEach(::onUpnpDeviceAdded)
-                        upnpService.registry.addListener(upnpRegistryListener)
-                        upnpService.controlPoint.search()
+                tbsService = (binder as TBSService.Binder).getService().also { tbsService ->
+                    tbsService.deviceRegistry.run {
+                        devices.forEach {
+                            devicesAdapter.add(UpnpDeviceItem(it))
+                        }
+                        addOnDeviceAddedListener {
+                            devicesAdapter.add(UpnpDeviceItem(it))
+                        }
+                        addOnDeviceRemovedListener {
+                            devicesAdapter.remove(UpnpDeviceItem(it))
+                        }
                     }
                 }
             }
 
             override fun onServiceDisconnected() {
-                tbsService?.upnpService?.registry?.removeListener(upnpRegistryListener)
                 tbsService = null
             }
         }
@@ -125,23 +87,9 @@ class MainFragment : BrowseSupportFragment() {
                     context!!.startActivity(
                         BrowseActivity.newIntent(
                             context!!,
-                            item.device.displayString,
-                            item.service
+                            item.device
                         )
                     )
-                }
-            }
-        }
-    }
-
-    private fun onUpnpDeviceAdded(device: RemoteDevice) {
-        activity!!.runOnUiThread {
-            if (device !in devicesAdapter.unmodifiableList<RemoteDevice>()) {
-                for (service in device.services) {
-                    if (service.serviceType.type == UPNP_SERVICE_TYPE_CONTENT_DIRECTORY) {
-                        devicesAdapter.add(UpnpDeviceItem(device, service))
-                        break
-                    }
                 }
             }
         }

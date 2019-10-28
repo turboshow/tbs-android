@@ -1,65 +1,120 @@
 package cn.turboshow.tv.ui.browse
 
+import android.app.ProgressDialog
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
+import android.os.IBinder
+import android.widget.Toast
+import android.widget.Toast.LENGTH_SHORT
 import androidx.fragment.app.FragmentActivity
 import androidx.leanback.widget.OnItemViewClickedListener
+import androidx.lifecycle.lifecycleScope
 import cn.turboshow.tv.R
-import cn.turboshow.tv.browse.UpnpDirectoryContainer
-import cn.turboshow.tv.browse.UpnpDirectoryItem
+import cn.turboshow.tv.device.Device
+import cn.turboshow.tv.device.DeviceFile
+import cn.turboshow.tv.device.usb.UsbStorageDevice
+import cn.turboshow.tv.service.TBSService
 import cn.turboshow.tv.ui.player.PlayerActivity
-import org.fourthline.cling.model.meta.RemoteService
+import cn.turboshow.tv.util.ServiceBinder
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class BrowseActivity : FragmentActivity() {
-    private lateinit var directoryServiceRef: String
+    private lateinit var device: Device
+    private lateinit var progressDialog: ProgressDialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_browse)
 
-        directoryServiceRef = intent.getStringExtra(ARG_DIRECTORY_SERVICE_REF)
-        val rootTitle = intent.getStringExtra(ARG_ROOT_TITLE)
+        progressDialog = ProgressDialog(this)
 
-        if (savedInstanceState != null) return
+        bindService()
 
-        showItems(rootTitle, "0")
+        registerReceiver(
+            object : BroadcastReceiver() {
+                override fun onReceive(context: Context?, intent: Intent?) {
+                    intent?.let {
+                        val mountPoint = it.data!!.path
+                        if (mountPoint == device.ref) {
+                            finish()
+                        }
+                    }
+                }
+            },
+            IntentFilter(Intent.ACTION_MEDIA_UNMOUNTED).apply {
+                addDataScheme("file")
+            }
+        )
     }
 
-    private fun showItems(title: String, containerId: String) {
-        val fragment = BrowseFragment.newInstance(title, directoryServiceRef, containerId)
-        fragment.setOnItemViewClickedListener(OnItemViewClickedListener { _, item, _, _ ->
-            when (item) {
-                is UpnpDirectoryContainer -> {
-                    showItems(item.container.title, item.container.id)
-                }
-                is UpnpDirectoryItem -> {
-                    playItem(item)
-                }
+    private fun bindService() {
+        val serviceBinder = object : ServiceBinder(this, this) {
+            override fun onServiceConnected(binder: IBinder) {
+                val deviceRef = intent.getStringExtra(ARG_DEVICE_REF)
+                val tbsService = (binder as TBSService.Binder).getService()
+                val deviceManager = tbsService.deviceRegistry
+                device = deviceManager.findDevice(deviceRef)!!
+
+                showRootDirectory()
             }
-        })
-        supportFragmentManager.beginTransaction().apply {
-            replace(R.id.fragment_container, fragment)
-            if (containerId != "0") {
-                addToBackStack(null)
+
+            override fun onServiceDisconnected() {
             }
-        }.commit()
+
+        }
+        serviceBinder.bind(TBSService::class.java)
     }
 
-    private fun playItem(item: UpnpDirectoryItem) {
-        val title = item.title
-        val url = item.item.firstResource.value
+    private fun showRootDirectory() {
+        val rootDirectoryFile = device.rootDirectoryFile
+        showDirectory(rootDirectoryFile, true)
+    }
+
+    private fun showDirectory(directoryFile: DeviceFile, isRoot: Boolean) {
+        lifecycleScope.launch(Dispatchers.Main) {
+            progressDialog.show()
+            try {
+                val files = device.listDirectory(directoryFile)
+                progressDialog.hide()
+                val fragment = BrowseFragment.newInstance(directoryFile.name, files)
+                fragment.setOnItemViewClickedListener(OnItemViewClickedListener { _, file, _, _ ->
+                    if (file is DeviceFile) {
+                        if (file.isDirectory) {
+                            showDirectory(file, false)
+                        } else if (file.isMedia) {
+                            playFile(file)
+                        }
+                    }
+                })
+                supportFragmentManager.beginTransaction().apply {
+                    replace(R.id.fragment_container, fragment)
+                    if (!isRoot) {
+                        addToBackStack(null)
+                    }
+                }.commit()
+            } catch (e: Exception) {
+                progressDialog.hide()
+                Toast.makeText(this@BrowseActivity, e.message, LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun playFile(file: DeviceFile) {
+        val title = file.name
+        val url = file.uri
         startActivity(PlayerActivity.newIntent(this, title, url))
     }
 
     companion object {
-        private const val ARG_DIRECTORY_SERVICE_REF = "upnp_service_ref"
-        private const val ARG_ROOT_TITLE = "root_title"
+        private const val ARG_DEVICE_REF = "device_ref"
 
-        fun newIntent(context: Context, rootTitle: String, service: RemoteService): Intent {
+        fun newIntent(context: Context, device: Device): Intent {
             return Intent(context, BrowseActivity::class.java).apply {
-                putExtra(ARG_ROOT_TITLE, rootTitle)
-                putExtra(ARG_DIRECTORY_SERVICE_REF, service.reference.toString())
+                putExtra(ARG_DEVICE_REF, device.ref)
             }
         }
     }

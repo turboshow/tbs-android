@@ -21,7 +21,7 @@ class PlayerActivity : FragmentActivity() {
     }
 
     companion object {
-        private const val ARG_TITLE = "title"
+        private const val ARG_TITLE = "name"
         private const val ARG_URI = "uri"
 
         fun newIntent(context: Context, title: String, uri: String): Intent {
