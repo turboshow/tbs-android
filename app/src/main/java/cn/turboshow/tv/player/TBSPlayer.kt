@@ -8,7 +8,6 @@ import org.videolan.libvlc.LibVLC
 import org.videolan.libvlc.Media
 import org.videolan.libvlc.MediaPlayer
 import org.videolan.libvlc.MediaPlayer.Event.*
-import org.videolan.libvlc.util.DisplayManager
 import org.videolan.libvlc.util.VLCVideoLayout
 
 class TBSPlayer(context: Context) {
@@ -16,7 +15,6 @@ class TBSPlayer(context: Context) {
     private val libVLC = LibVLC(context, options)
     private val player = MediaPlayer(libVLC)
     private var videoView: SurfaceView? = null
-    private var videoHelper: VideoHelper? = null
     private var prepared = false
     private var paused = false
     private var startPosition: Long = 0
@@ -24,7 +22,7 @@ class TBSPlayer(context: Context) {
     private var callback: Callback? = null
 
     interface Callback {
-        fun onPrepared()
+        fun onDurationReady()
         fun onPositionChanged()
         fun onCompleted()
     }
@@ -44,13 +42,7 @@ class TBSPlayer(context: Context) {
                     "Opening"
                 }
                 Buffering -> "Buffering"
-                Playing -> {
-                    if (!prepared) {
-                        prepared = true
-                        callback?.onPrepared()
-                    }
-                    "Playing"
-                }
+                Playing -> "Playing"
                 Paused -> "Paused"
                 Stopped -> "Stopped"
                 EndReached -> {
@@ -65,7 +57,10 @@ class TBSPlayer(context: Context) {
                 }
                 SeekableChanged -> "SeekableChanged"
                 PausableChanged -> "PausableChanged"
-                LengthChanged -> "LengthChanged"
+                LengthChanged -> {
+                    callback?.onDurationReady()
+                    "LengthChanged"
+                }
                 Vout -> "Vout"
                 ESAdded -> "ESAdded"
                 ESDeleted -> "ESDeleted"
@@ -100,7 +95,6 @@ class TBSPlayer(context: Context) {
     fun play() {
         if (!paused) {
             stop()
-            attacheViews()
         }
         player.play()
         paused = false
@@ -133,26 +127,12 @@ class TBSPlayer(context: Context) {
     }
 
     fun stop() {
-        detachViews()
         player.stop()
     }
 
     fun release() {
+        callback = null
         player.release()
         libVLC.release()
-    }
-
-    private fun attacheViews() {
-        videoHelper = VideoHelper(player, videoView)
-        videoHelper?.let {
-            it.videoScale = MediaPlayer.ScaleType.SURFACE_BEST_FIT
-            it.attachViews()
-            it.updateVideoSurfaces()
-        }
-    }
-
-    private fun detachViews() {
-        videoHelper?.detachViews()
-        videoHelper?.release()
     }
 }
