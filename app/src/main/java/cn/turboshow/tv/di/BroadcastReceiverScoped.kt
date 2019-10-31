@@ -13,22 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package cn.turboshow.tv.di
 
-import androidx.lifecycle.ViewModelProvider
-import dagger.Binds
-import dagger.Module
+import javax.inject.Scope
+import kotlin.annotation.Retention
+import kotlin.annotation.Target
+import kotlin.annotation.AnnotationRetention
 
 /**
- * Module used to define the connection between the framework's [ViewModelProvider.Factory] and
- * our own implementation: [IOSchedViewModelFactory].
+ * The BroadcastReceiverScoped custom scoping annotation specifies that the lifespan of a dependency be
+ * the same as that of a BroadcastReceiver. This is used to annotate dependencies that behave like a
+ * singleton within the lifespan of a BroadcastReceiver.
  */
-@Module
-@Suppress("UNUSED")
-abstract class ViewModelModule {
-
-    @Binds
-    internal abstract fun bindViewModelFactory(factory: IOSchedViewModelFactory):
-        ViewModelProvider.Factory
-}
+@Scope
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.TYPE, AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
+annotation class BroadcastReceiverScoped

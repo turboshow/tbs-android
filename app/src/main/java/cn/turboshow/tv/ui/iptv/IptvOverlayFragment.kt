@@ -6,17 +6,16 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import androidx.lifecycle.ViewModelProvider
-import cn.turboshow.tv.AppViewModel
 import cn.turboshow.tv.R
-import cn.turboshow.tv.di.activityViewModelProvider
+import com.google.samples.apps.iosched.shared.util.activityViewModelProvider
 import dagger.android.support.DaggerDialogFragment
 import kotlinx.android.synthetic.main.fragment_channels.*
 import javax.inject.Inject
 
-class ChannelSelectorFragment : DaggerDialogFragment() {
+class IptvOverlayFragment : DaggerDialogFragment() {
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
-    private lateinit var viewModel: AppViewModel
+    private lateinit var viewModel: IptvViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,7 +47,6 @@ class ChannelSelectorFragment : DaggerDialogFragment() {
     }
 
     companion object {
-        @JvmStatic
-        fun newInstance() = ChannelSelectorFragment()
+        fun newInstance() = IptvOverlayFragment()
     }
 }

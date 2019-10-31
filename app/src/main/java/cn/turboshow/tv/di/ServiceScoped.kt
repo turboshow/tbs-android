@@ -16,19 +16,18 @@
 
 package cn.turboshow.tv.di
 
-import androidx.lifecycle.ViewModelProvider
-import dagger.Binds
-import dagger.Module
+import javax.inject.Scope
+
+import kotlin.annotation.Retention
+import kotlin.annotation.Target
+import kotlin.annotation.AnnotationRetention
 
 /**
- * Module used to define the connection between the framework's [ViewModelProvider.Factory] and
- * our own implementation: [IOSchedViewModelFactory].
+ * The ServiceScoped custom scoping annotation specifies that the lifespan of a dependency be
+ * the same as that of a Service. This is used to annotate dependencies that behave like a
+ * singleton within the lifespan of a Service.
  */
-@Module
-@Suppress("UNUSED")
-abstract class ViewModelModule {
-
-    @Binds
-    internal abstract fun bindViewModelFactory(factory: IOSchedViewModelFactory):
-        ViewModelProvider.Factory
-}
+@Scope
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.TYPE, AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
+annotation class ServiceScoped

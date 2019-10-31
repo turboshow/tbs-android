@@ -1,13 +1,11 @@
-package cn.turboshow.tv
+package cn.turboshow.tv.ui.iptv
 
 import androidx.lifecycle.ViewModel
 import cn.turboshow.tv.data.PlaylistRepository
 import cn.turboshow.tv.data.SettingsRepository
-import cn.turboshow.tv.service.WebServer
-import fi.iki.elonen.NanoHTTPD
 import javax.inject.Inject
 
-class AppViewModel @Inject constructor(
+class IptvViewModel @Inject constructor(
     private val playlistRepository: PlaylistRepository,
     settingsRepository: SettingsRepository
 ): ViewModel() {

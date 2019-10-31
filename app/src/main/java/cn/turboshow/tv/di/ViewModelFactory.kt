@@ -9,13 +9,17 @@ import androidx.lifecycle.ViewModelProviders
 import javax.inject.Inject
 import javax.inject.Provider
 
-class ViewModelFactory @Inject constructor(
+/**
+ * ViewModelFactory which uses Dagger to create the instances.
+ */
+class IOSchedViewModelFactory @Inject constructor(
     private val creators: @JvmSuppressWildcards Map<Class<out ViewModel>, Provider<ViewModel>>
 ) : ViewModelProvider.Factory {
+
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         val found = creators.entries.find { modelClass.isAssignableFrom(it.key) }
         val creator = found?.value
-            ?: throw IllegalArgumentException("unknown model class " + modelClass)
+            ?: throw IllegalArgumentException("unknown model class $modelClass")
         try {
             @Suppress("UNCHECKED_CAST")
             return creator.get() as T
@@ -24,13 +28,3 @@ class ViewModelFactory @Inject constructor(
         }
     }
 }
-
-inline fun <reified VM : ViewModel> FragmentActivity.viewModelProvider(
-    provider: ViewModelProvider.Factory
-) =
-    ViewModelProviders.of(this, provider).get(VM::class.java)
-
-inline fun <reified VM : ViewModel> Fragment.activityViewModelProvider(
-    provider: ViewModelProvider.Factory
-) =
-    ViewModelProviders.of(requireActivity(), provider).get(VM::class.java)

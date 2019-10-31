@@ -8,6 +8,8 @@ import org.videolan.libvlc.LibVLC
 import org.videolan.libvlc.Media
 import org.videolan.libvlc.MediaPlayer
 import org.videolan.libvlc.MediaPlayer.Event.*
+import org.videolan.libvlc.util.DisplayManager
+import org.videolan.libvlc.util.VLCVideoLayout
 
 class TBSPlayer(context: Context) {
     private val options = arrayListOf("-vv", "--vout=android_display,none")
@@ -77,6 +79,10 @@ class TBSPlayer(context: Context) {
 
     fun setVideoView(videoView: SurfaceView) {
         this.videoView = videoView
+    }
+
+    fun attachViews(videoLayout: VLCVideoLayout) {
+        player.attachViews(videoLayout, null, true, false)
     }
 
     fun setMedia(uri: Uri) {

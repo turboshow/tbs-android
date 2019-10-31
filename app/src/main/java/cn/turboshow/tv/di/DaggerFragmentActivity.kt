@@ -1,26 +1,24 @@
 package cn.turboshow.tv.di
 
 import android.os.Bundle
-import androidx.annotation.Nullable
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import dagger.android.AndroidInjection
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
-import dagger.android.support.HasSupportFragmentInjector
+import dagger.android.HasAndroidInjector
 import javax.inject.Inject
 
 abstract class DaggerFragmentActivity
-    : FragmentActivity(), HasSupportFragmentInjector {
+    : FragmentActivity(), HasAndroidInjector {
     @Inject
-    lateinit var supportFragmentInjector: DispatchingAndroidInjector<Fragment>
+    lateinit var androidInjector: DispatchingAndroidInjector<Any>
 
-    override fun onCreate(@Nullable savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         AndroidInjection.inject(this);
         super.onCreate(savedInstanceState);
     }
 
-    override fun supportFragmentInjector(): AndroidInjector<Fragment> {
-        return supportFragmentInjector;
+    override fun androidInjector(): AndroidInjector<Any> {
+        return androidInjector
     }
 }

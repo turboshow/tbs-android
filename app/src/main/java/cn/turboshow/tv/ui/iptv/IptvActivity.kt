@@ -7,12 +7,11 @@ import android.os.Bundle
 import android.view.KeyEvent
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import cn.turboshow.tv.AppViewModel
 import cn.turboshow.tv.R
 import cn.turboshow.tv.player.TBSPlayer
 import cn.turboshow.tv.data.SettingsRepository
 import cn.turboshow.tv.di.DaggerFragmentActivity
-import cn.turboshow.tv.di.viewModelProvider
+import com.google.samples.apps.iosched.shared.util.viewModelProvider
 import kotlinx.android.synthetic.main.activity_iptv.*
 import javax.inject.Inject
 
@@ -21,7 +20,7 @@ class IptvActivity : DaggerFragmentActivity() {
     lateinit var viewModelFactory: ViewModelProvider.Factory
     @Inject
     lateinit var settingsRepository: SettingsRepository
-    private lateinit var viewModel: AppViewModel
+    private lateinit var viewModel: IptvViewModel
     private lateinit var player: TBSPlayer
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,7 +53,7 @@ class IptvActivity : DaggerFragmentActivity() {
     }
 
     private fun showChannelsDialog() {
-        val dialog = ChannelSelectorFragment.newInstance()
+        val dialog = IptvOverlayFragment.newInstance()
         dialog.show(supportFragmentManager, "channels")
     }
 

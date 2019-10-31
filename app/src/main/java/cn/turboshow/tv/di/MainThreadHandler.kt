@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Google LLC
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,12 @@
 
 package cn.turboshow.tv.di
 
-import androidx.lifecycle.ViewModelProvider
-import dagger.Binds
-import dagger.Module
+import javax.inject.Qualifier
 
-/**
- * Module used to define the connection between the framework's [ViewModelProvider.Factory] and
- * our own implementation: [IOSchedViewModelFactory].
- */
-@Module
-@Suppress("UNUSED")
-abstract class ViewModelModule {
-
-    @Binds
-    internal abstract fun bindViewModelFactory(factory: IOSchedViewModelFactory):
-        ViewModelProvider.Factory
-}
+@Qualifier
+@Target(
+    AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER,
+    AnnotationTarget.PROPERTY_SETTER, AnnotationTarget.FIELD,
+    AnnotationTarget.VALUE_PARAMETER
+)
+annotation class MainThreadHandler

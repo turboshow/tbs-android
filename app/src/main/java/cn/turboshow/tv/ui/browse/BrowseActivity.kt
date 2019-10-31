@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package cn.turboshow.tv.ui.browse
 
 import android.app.ProgressDialog
@@ -15,7 +17,6 @@ import androidx.lifecycle.lifecycleScope
 import cn.turboshow.tv.R
 import cn.turboshow.tv.device.Device
 import cn.turboshow.tv.device.DeviceFile
-import cn.turboshow.tv.device.usb.UsbStorageDevice
 import cn.turboshow.tv.service.TBSService
 import cn.turboshow.tv.ui.player.PlayerActivity
 import cn.turboshow.tv.util.ServiceBinder

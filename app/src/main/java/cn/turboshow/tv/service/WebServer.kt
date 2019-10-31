@@ -47,7 +47,7 @@ class WebServer @Inject constructor(
         return session.method == Method.POST && session.uri == pathPattern
     }
 
-    private fun getPlaylist(session: IHTTPSession): Response {
+    private fun getPlaylist(): Response {
         return newFixedLengthResponse("playlist")
     }
 
@@ -68,7 +68,7 @@ class WebServer @Inject constructor(
         return newFixedLengthResponse("accepted")
     }
 
-    private fun getUdpxySettings(session: IHTTPSession): Response {
+    private fun getUdpxySettings(): Response {
         val adapter = moshi.adapter(UdpxySettings::class.java)
         return newFixedLengthResponse(adapter.toJson(UdpxySettings(settingsRepository.udpxyAddr.value)))
     }
@@ -102,13 +102,13 @@ class WebServer @Inject constructor(
     private fun handleRequests(session: IHTTPSession): Response {
         return when {
             get(session, "/api/settings/playlist") -> {
-                getPlaylist(session)
+                getPlaylist()
             }
             post(session, "/api/settings/playlist") -> {
                 updatePlaylist(session)
             }
             get(session, "/api/settings/udpxy") -> {
-                getUdpxySettings(session)
+                getUdpxySettings()
             }
             post(session, "/api/settings/udpxy") -> {
                 updateUdpxySettings(session)
