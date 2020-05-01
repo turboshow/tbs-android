@@ -1,6 +1,6 @@
 ### [中文](README-zh.md) | English
 
-# TBS media player for Android TV, based on libvlc.
+# TBS media center for Android TV, based on libvlc.
 
 [official site](http://www.turboshow.cn) (Chinese)
 
