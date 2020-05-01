@@ -1,1 +1,1 @@
-include ':app'
+include ':tbs-tv', ':tbs-mobile', ':tbs-core'
