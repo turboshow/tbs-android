@@ -12,4 +12,4 @@
 
 ## [官网](http://www.turboshow.cn)
 
-![输入图片说明](https://images.gitee.com/uploads/images/2019/0727/201458_7b480937_82552.png "screenshot_tv.png")
+![输入图片说明](https://www.turboshow.cn/assets/screenshot_tv.jpg "screenshot_tv.png")
